@@ -1,0 +1,106 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    background-color: theme('colors.paper.DEFAULT');
+    color: theme('colors.ink.DEFAULT');
+    font-family: theme('fontFamily.sans');
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Sutil grão atmosférico no background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+    background-image: radial-gradient(circle at 1px 1px, rgba(10,22,40,0.06) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+
+  ::selection {
+    background-color: theme('colors.ink.DEFAULT');
+    color: theme('colors.paper.DEFAULT');
+  }
+}
+
+@layer components {
+  .field-label {
+    @apply block text-xs uppercase tracking-[0.18em] text-ink-muted mb-2 font-medium;
+  }
+
+  .field-input {
+    @apply w-full bg-paper border border-paper-line px-4 py-3
+           font-mono text-sm text-ink
+           focus:outline-none focus:border-ink focus:ring-0
+           placeholder:text-ink-muted/60;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-ink text-paper px-5 py-3
+           text-sm font-medium tracking-wide
+           transition-colors duration-150
+           hover:bg-ink-soft
+           disabled:bg-ink-muted disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           bg-transparent text-ink border border-ink/30 px-5 py-3
+           text-sm font-medium tracking-wide
+           transition-colors duration-150
+           hover:bg-ink hover:text-paper
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2
+           bg-accent text-paper px-5 py-3
+           text-sm font-medium tracking-wide
+           transition-colors duration-150
+           hover:bg-accent-hover
+           disabled:bg-ink-muted disabled:cursor-not-allowed;
+  }
+
+  .tab-btn {
+    @apply px-5 py-3 text-sm font-medium tracking-wide
+           border-b-2 border-transparent
+           text-ink-muted hover:text-ink
+           transition-colors duration-150;
+  }
+
+  .tab-btn-active {
+    @apply text-ink border-ink;
+  }
+
+  .card {
+    @apply bg-paper-warm border border-paper-line p-6 sm:p-8;
+  }
+}
+
+@layer utilities {
+  .pulse-dot {
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: reveal 0.5s ease-out forwards;
+  }
+  @keyframes reveal {
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
