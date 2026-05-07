@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { parseList, format, isValid } from '@/lib/cnpj';
+import { analyzeList, format, isValid } from '@/lib/cnpj';
 import { RateLimiter, sleep } from '@/lib/rateLimiter';
 
 export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
@@ -12,8 +12,7 @@ export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
   const [currentCnpj, setCurrentCnpj] = useState('');
   const cancelRef = useRef(false);
 
-  const list = parseList(raw);
-  const invalidParsed = list.filter(c => !isValid(c));
+  const { valid: list, invalid } = analyzeList(raw);
 
   const handleStart = async () => {
     if (running || list.length === 0) return;
@@ -104,9 +103,38 @@ export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
         className="field-input resize-y leading-relaxed"
       />
 
+      {invalid.length > 0 && (
+        <div className="mt-4 border-l-4 border-signal-err bg-signal-err/5 px-4 py-4 reveal">
+          <div className="flex items-baseline justify-between gap-4 mb-3">
+            <p className="text-sm text-signal-err font-medium">
+              {invalid.length} {invalid.length === 1 ? 'entrada inválida' : 'entradas inválidas'} — {invalid.length === 1 ? 'será ignorada' : 'serão ignoradas'} na consulta
+            </p>
+            <span className="text-[10px] uppercase tracking-[0.15em] text-ink-muted whitespace-nowrap">
+              corrija e re-cole
+            </span>
+          </div>
+          <ul className="grid sm:grid-cols-2 gap-x-6 gap-y-1.5">
+            {invalid.map((item, i) => (
+              <li
+                key={`${item.raw}-${i}`}
+                className="flex items-baseline gap-3 font-mono text-xs"
+              >
+                <span className="text-signal-err">✗</span>
+                <span className="text-ink truncate" title={item.raw}>
+                  {item.digits.length === 14 ? format(item.digits) : item.raw}
+                </span>
+                <span className="text-ink-muted text-[11px] ml-auto whitespace-nowrap">
+                  {item.reason}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
-        <Stat label="Reconhecidos" value={list.length} />
-        <Stat label="Inválidos" value={invalidParsed.length} tone={invalidParsed.length ? 'warn' : 'ok'} />
+        <Stat label="Válidos" value={list.length} tone="ok" />
+        <Stat label="Inválidos" value={invalid.length} tone={invalid.length ? 'err' : 'ok'} />
         <Stat label="Tempo estimado" value={estimateTotalTime(list.length)} />
         <Stat label="Limite API" value="3/min" />
       </div>
