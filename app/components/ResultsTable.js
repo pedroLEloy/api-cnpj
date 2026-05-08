@@ -93,6 +93,7 @@ export default function ResultsTable({ records, onClear }) {
               <Th>Atividade principal</Th>
               <Th>Abertura</Th>
               <Th>Capital social</Th>
+              <Th>Fonte</Th>
             </tr>
           </thead>
           <tbody>
@@ -101,7 +102,7 @@ export default function ResultsTable({ records, onClear }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={9} className="text-center py-8 text-ink-muted text-sm">
+                <td colSpan={10} className="text-center py-8 text-ink-muted text-sm">
                   Nenhum resultado bate com o filtro.
                 </td>
               </tr>
@@ -128,7 +129,7 @@ function Row({ record }) {
     return (
       <tr className="border-b border-paper-line/60 bg-signal-err/5">
         <td className="px-4 py-3 font-mono text-xs whitespace-nowrap">{formatCnpj(cnpj)}</td>
-        <td className="px-4 py-3 text-signal-err italic" colSpan={8}>
+        <td className="px-4 py-3 text-signal-err italic" colSpan={9}>
           erro · {error}
         </td>
       </tr>
@@ -161,8 +162,31 @@ function Row({ record }) {
       <td className="px-4 py-3 font-mono text-xs whitespace-nowrap text-right">
         {formatCapital(data?.capital_social)}
       </td>
+      <td className="px-4 py-3 whitespace-nowrap">
+        <SourceBadge source={data?._source} />
+      </td>
     </tr>
   );
+}
+
+function SourceBadge({ source }) {
+  if (source === 'opencnpj') {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-ink-muted">
+        <span className="w-1.5 h-1.5 rounded-full bg-signal-ok" />
+        OpenCNPJ
+      </span>
+    );
+  }
+  if (source === 'receitaws') {
+    return (
+      <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.1em] text-accent">
+        <span className="w-1.5 h-1.5 rounded-full bg-accent" />
+        ReceitaWS
+      </span>
+    );
+  }
+  return <span className="font-mono text-[10px] text-ink-muted">—</span>;
 }
 
 function formatCapital(val) {

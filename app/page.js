@@ -85,9 +85,11 @@ export default function Page() {
       <footer className="border-t border-paper-line">
         <div className="max-w-6xl mx-auto px-6 sm:px-10 py-6 text-xs font-mono text-ink-muted flex flex-wrap gap-x-6 gap-y-2 justify-between">
           <span>
-            Dados oficiais: <a href="https://receitaws.com.br/api" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">receitaws.com.br</a>
+            Fontes: <a href="https://www.opencnpj.com" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">OpenCNPJ</a>
+            {' · '}
+            <a href="https://receitaws.com.br/api" target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-ink">ReceitaWS</a>
           </span>
-          <span>Tier gratuito · 3 req/min</span>
+          <span>Primária 100/min · Fallback 3/min</span>
         </div>
       </footer>
     </main>

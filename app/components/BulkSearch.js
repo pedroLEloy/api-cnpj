@@ -21,7 +21,7 @@ export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
     setProgress({ done: 0, total: list.length });
     onBatchStart?.();
 
-    const limiter = new RateLimiter({ maxRequests: 3, windowMs: 60_000 });
+    const limiter = new RateLimiter({ maxRequests: 100, windowMs: 60_000 });
 
     for (let i = 0; i < list.length; i++) {
       if (cancelRef.current) break;
@@ -80,8 +80,9 @@ export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
     if (!running) return null;
     const remaining = list.length - progress.done;
     if (remaining <= 0) return null;
-    // Pior caso: ~20s por requisição depois das 3 primeiras
-    const seconds = Math.max(0, (remaining - Math.min(3 - progress.done, 0)) * 20);
+    // Em regime estacionário a 100/min, cada chamada custa ~0,6s no rate limiter.
+    // Some uma latência média de rede de ~0,3s por chamada para ter folga.
+    const seconds = Math.ceil(remaining * 0.9);
     if (seconds <= 0) return null;
     const min = Math.floor(seconds / 60);
     const sec = seconds % 60;
@@ -136,7 +137,7 @@ export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
         <Stat label="Válidos" value={list.length} tone="ok" />
         <Stat label="Inválidos" value={invalid.length} tone={invalid.length ? 'err' : 'ok'} />
         <Stat label="Tempo estimado" value={estimateTotalTime(list.length)} />
-        <Stat label="Limite API" value="3/min" />
+        <Stat label="Limite API" value="100/min" />
       </div>
 
       <div className="mt-6 flex flex-wrap gap-3">
@@ -188,9 +189,10 @@ export default function BulkSearch({ onResult, onBatchStart, onBatchEnd }) {
       )}
 
       <p className="mt-5 text-xs text-ink-muted leading-relaxed">
-        A API gratuita da ReceitaWS aceita apenas <strong className="text-ink">3 consultas por minuto</strong>.
-        O app respeita esse limite automaticamente, esperando o tempo necessário entre as chamadas.
-        Para listas longas, deixe a aba aberta — as consultas seguem sendo feitas e aparecem na tabela à medida que retornam.
+        A consulta usa <strong className="text-ink">OpenCNPJ</strong> como fonte primária
+        (<strong className="text-ink">100/min</strong>, dados do dump mensal da Receita) e cai para
+        a <strong className="text-ink">ReceitaWS</strong> (3/min, dado fresco) quando o CNPJ não está
+        no dump. Cada linha da tabela mostra qual fonte respondeu.
       </p>
     </div>
   );
@@ -222,8 +224,9 @@ function ProgressBar({ done, total }) {
 
 function estimateTotalTime(n) {
   if (n <= 0) return '—';
-  if (n <= 3) return '<10s';
-  const seconds = Math.ceil(((n - 3) / 3) * 60);
+  if (n <= 30) return '<30s';
+  // 100 req/min = janela; com latência média assumimos ~0.9s/CNPJ.
+  const seconds = Math.ceil(n * 0.9);
   const min = Math.floor(seconds / 60);
   const sec = seconds % 60;
   return min > 0 ? `~${min}m ${sec}s` : `~${sec}s`;
